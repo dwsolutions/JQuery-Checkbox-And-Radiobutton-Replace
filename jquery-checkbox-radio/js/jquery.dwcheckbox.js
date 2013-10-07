@@ -19,50 +19,41 @@ FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
 COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
 IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-/**************************************************/
-
-(function($) {
-    var addCheckbox = function(e) {
+**************************************************/
+(function ($) {
+    var addCheckbox = function (e) {
         if (!e) {
-            var e = window.event;
+            e = window.event;
         }
-        e.cancelBubble = true;
-        if (e.stopPropagation) {
-            e.stopPropagation();
-        }            
     };
 
-    $.fn.dwcheckbox = function(options) {
+    $.fn.dwcheckbox = function (options) {
         document.execCommand('BackgroundImageCache', false, true);
-        var settings = { style_name: 'jquery-checkbox', placeholder: 'image/placeholder.png' };
+        var settings = { style_name: 'jquery-checkbox', placeholder: 'image/placeholder.png' },
+            addEvents = function (obj) {
+                var boolChecked = obj.checked, boolDisabled = obj.disabled, $obj = $(obj);
+
+                if (obj.stateInterval) {
+                    clearInterval(obj.stateInterval);
+                }
+
+                obj.stateInterval = setInterval(
+                    function () {
+                        if (obj.disabled !== boolDisabled) {
+                            $obj.trigger(boolDisabled = (!!obj.disabled ? 'disable' : 'enable'));
+                        }
+
+                        if (obj.checked !== boolChecked) {
+                            $obj.trigger(boolChecked = (!!obj.checked ? 'check' : 'uncheck'));
+                        }
+                    }, 10);
+                return $obj;
+            };
+
         settings = $.extend(settings, options || {});
 
-        var addEvents = function(obj) {
-            var boolChecked = obj.checked;
-            var boolDisabled = obj.disabled;
-            var $obj = $(obj);
-
-            if (obj.stateInterval) {
-                clearInterval(obj.stateInterval);
-            }             
-
-            obj.stateInterval = setInterval(
-                function() {
-                    if (obj.disabled !== boolDisabled) {
-                        $obj.trigger((boolDisabled = !!obj.disabled) ? 'disable' : 'enable');
-                    }
-
-                    if (obj.checked !== boolChecked) {
-                        $obj.trigger((boolChecked = !!obj.checked) ? 'check' : 'uncheck');
-                    }                            
-                }, 10
-            );
-            return $obj;
-        };
-
-        return this.each(function() {
-            var chkbx = this;
-            var $chkbx_element = addEvents(chkbx);
+        return this.each(function () {
+            var chkbx = this, $chkbx_element = addEvents(chkbx);
 
             // Removing wrapper if applied
             if (chkbx.wrapper) {
@@ -73,11 +64,11 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
             chkbx.wrapper = $('<span class="' + settings.style_name + '"><span class="mark"><img src="' + settings.placeholder + '" /></span></span>');
             chkbx.wrapperInner = chkbx.wrapper.children('span:eq(0)');
             chkbx.wrapper.hover(
-                function(e) {
+                function (e) {
                     chkbx.wrapperInner.addClass(settings.style_name + '-hover');
                     addCheckbox(e);
                 },
-                function(e) {
+                function (e) {
                     chkbx.wrapperInner.removeClass(settings.style_name + '-hover');
                     addCheckbox(e);
                 }
@@ -93,58 +84,59 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
                     label = false;
                 }                    
             }
-            
+
             // If label not found, check if a label element in the environment
             // of the checkable element
             if (!label) {
                 label = $chkbx_element.closest ? $chkbx_element.closest('label') : $chkbx_element.parents('label:eq(0)');
-                if (!label.length)
+                if (!label.length) {
                     label = false;
+                }
             }
-            
+
             // If label found, applying event handlers for it
             if (label) {
                 label.hover(
-                    function(e) {
+                    function (e) {
                         chkbx.wrapper.trigger('mouseover', [e]);
                     },
-                    function(e) {
+                    function (e) {
                         chkbx.wrapper.trigger('mouseout', [e]);
                     }
                 );
-                label.live("click", function(e) {
+                label.live("click", function (e) {
                     $chkbx_element.trigger('click', [e]);
                     addCheckbox(e);
                     return false;
                 });
             }
-            
-            chkbx.wrapper.live("click", function(e) {
+
+            chkbx.wrapper.live("click", function (e) {
                 $chkbx_element.trigger('click', [e]);
                 addCheckbox(e);
                 return false;
             });
-            
-            $chkbx_element.live("click", function(e) {
+
+            $chkbx_element.live("click", function (e) {
                 addCheckbox(e);
             });
-            
-            $chkbx_element.bind('disable', function() {
+
+            $chkbx_element.bind('disable', function () {
                 chkbx.wrapperInner.addClass(settings.style_name + '-disabled');
-            }).bind('enable', function() {
+            }).bind('enable', function () {
                 chkbx.wrapperInner.removeClass(settings.style_name + '-disabled');
             });
-            
-            $chkbx_element.bind('check', function() {
+
+            $chkbx_element.bind('check', function () {
                 chkbx.wrapper.addClass(settings.style_name + '-checked');
-            }).bind('uncheck', function() {
+            }).bind('uncheck', function () {
                 chkbx.wrapper.removeClass(settings.style_name + '-checked');
             });
 
             // Disable image drag-n-drop for IE
-            $('img', chkbx.wrapper).bind('dragstart', function() {
+            $('img', chkbx.wrapper).bind('dragstart', function () {
                 return false;
-            }).bind('mousedown', function() {
+            }).bind('mousedown', function () {
                 return false;
             });
 
@@ -156,7 +148,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
             if (chkbx.checked) {
                 chkbx.wrapper.addClass(settings.style_name + '-checked');
             }
-                
+
             if (chkbx.disabled) {
                 chkbx.wrapperInner.addClass(settings.style_name + '-disabled');
             }
